@@ -184,14 +184,18 @@ static void metadata_callback(const FLAC__StreamDecoder *decoder,
         /*Set the header gain to the album gain after converting to the R128
           reference level (-23 LUFS).*/
         if(saw_album_gain){
+          char album_gain_buf[7];
+          int album_gain_val;
           gain=256*(album_gain+(-23-reference_loudness))+0.5;
-          inopt->gain=gain<-32768?-32768:gain<32767?(int)floor(gain):32767;
+          album_gain_val=gain<-32768?-32768:gain<32767?(int)floor(gain):32767;
+          sprintf(album_gain_buf,"%i",album_gain_val);
+          ope_comments_add(inopt->comments, "R128_ALBUM_GAIN",album_gain_buf);
         }
         /*If there was a track gain, then add an equivalent R128 tag for that.*/
         if(saw_track_gain){
           char track_gain_buf[7];
           int track_gain_val;
-          gain=256*(track_gain-album_gain)+0.5;
+          gain=256*(track_gain+(-23-reference_loudness))+0.5;
           track_gain_val=gain<-32768?-32768:gain<32767?(int)floor(gain):32767;
           sprintf(track_gain_buf,"%i",track_gain_val);
           ope_comments_add(inopt->comments, "R128_TRACK_GAIN",track_gain_buf);
